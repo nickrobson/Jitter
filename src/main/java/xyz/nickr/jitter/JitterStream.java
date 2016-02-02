@@ -51,7 +51,6 @@ public class JitterStream {
                     String line = reader.readLine();
                     if (line != null && !(line = line.trim()).isEmpty()) {
                         try {
-                            System.out.println(line);
                             JSONObject object = new JSONObject(line);
                             Message event = new MessageImpl(jitter, room, object);
                             jitter.onMessage(event);
