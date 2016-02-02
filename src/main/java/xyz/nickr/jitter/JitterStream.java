@@ -6,9 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-
 import org.json.JSONObject;
 
 import xyz.nickr.jitter.api.Message;
@@ -42,69 +39,57 @@ public class JitterStream {
         return new BufferedReader(new InputStreamReader(res));
     }
 
-    public Future<?> beginMessagesStream(final Room room) {
+    public void beginMessagesStream(final Room room) {
         final String roomId = room.getID();
         if (messageStreaming.contains(roomId))
-            return new FutureTask<Object>(() -> {}, null);
+            return;
         messageStreaming.add(roomId);
-        return jitter.executor().submit(() -> {
+        new Thread(() -> {
             try {
                 final BufferedReader reader = getMessagesStream(roomId);
-                new Thread(() -> {
-                    try {
-                        while (true) {
-                            String line = reader.readLine();
-                            if (line != null && !(line = line.trim()).isEmpty()) {
-                                try {
-                                    System.out.println(line);
-                                    JSONObject object = new JSONObject(line);
-                                    Message event = new MessageImpl(jitter, room, object);
-                                    jitter.onMessage(event);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
+                while (true) {
+                    String line = reader.readLine();
+                    if (line != null && !(line = line.trim()).isEmpty()) {
+                        try {
+                            System.out.println(line);
+                            JSONObject object = new JSONObject(line);
+                            Message event = new MessageImpl(jitter, room, object);
+                            jitter.onMessage(event);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }).start();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        });
+        }).start();
     }
 
-    public Future<?> beginEventsStream(final Room room) {
+    public void beginEventsStream(final Room room) {
         final String roomId = room.getID();
         if (eventsStreaming.contains(roomId))
-            return new FutureTask<Object>(() -> {}, null);
+            return;
         eventsStreaming.add(roomId);
-        return jitter.executor().submit(() -> {
+        new Thread(() -> {
             try {
                 final BufferedReader reader = getEventsStream(roomId);
-                new Thread(() -> {
-                    try {
-                        while (true) {
-                            String line = reader.readLine();
-                            if (line != null && !(line = line.trim()).isEmpty()) {
-                                try {
-                                    JSONObject object = new JSONObject(line);
-                                    RoomEvent event = new RoomEventImpl(jitter, room, object);
-                                    jitter.onEvent(event);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
+                while (true) {
+                    String line = reader.readLine();
+                    if (line != null && !(line = line.trim()).isEmpty()) {
+                        try {
+                            JSONObject object = new JSONObject(line);
+                            RoomEvent event = new RoomEventImpl(jitter, room, object);
+                            jitter.onEvent(event);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }).start();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        });
+        }).start();
     }
 
 }

@@ -1,8 +1,6 @@
 package xyz.nickr.jitter.api;
 
 import java.util.List;
-import java.util.concurrent.Future;
-
 import org.json.JSONObject;
 
 import xyz.nickr.jitter.Jitter;
@@ -49,12 +47,12 @@ public interface Room {
 
     Message sendMessage(String message);
 
-    default Future<?> beginMessageStreaming() {
-        return getJitter().stream().beginMessagesStream(this);
+    default void beginMessageStreaming() {
+        getJitter().stream().beginMessagesStream(this);
     }
 
-    default Future<?> beginEventsStreaming() {
-        return getJitter().stream().beginEventsStream(this);
+    default void beginEventsStreaming() {
+        getJitter().stream().beginEventsStream(this);
     }
 
 }
