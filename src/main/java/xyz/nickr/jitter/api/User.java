@@ -22,4 +22,6 @@ public interface User {
 
     String getMediumAvatarURL();
 
+    Message sendMessage(String message);
+
 }

@@ -2,7 +2,12 @@ package xyz.nickr.jitter.impl;
 
 import org.json.JSONObject;
 
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.exceptions.UnirestException;
+
 import xyz.nickr.jitter.Jitter;
+import xyz.nickr.jitter.api.Message;
+import xyz.nickr.jitter.api.Room;
 import xyz.nickr.jitter.api.User;
 
 public class UserImpl implements User {
@@ -58,6 +63,20 @@ public class UserImpl implements User {
     @Override
     public String toString() {
         return json.toString();
+    }
+
+    @Override
+    public Message sendMessage(String message) {
+        try {
+            JSONObject req = new JSONObject();
+            req.put("uri", getUsername());
+            JSONObject resp = jitter.requests().post("/rooms").body(new JsonNode(req.toString())).asJson().getBody().getObject();
+            Room room = new RoomImpl(jitter, resp);
+            return room.sendMessage(message);
+        } catch (UnirestException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }
