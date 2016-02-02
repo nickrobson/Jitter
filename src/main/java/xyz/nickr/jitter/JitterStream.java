@@ -1,6 +1,7 @@
 package xyz.nickr.jitter;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
@@ -31,12 +32,12 @@ public class JitterStream {
         return jitter;
     }
 
-    public BufferedReader getMessagesStream(String roomId) {
+    public BufferedReader getMessagesStream(String roomId) throws IOException {
         InputStream res = jitter.requests().stream("/rooms/" + roomId + "/chatMessages");
         return new BufferedReader(new InputStreamReader(res));
     }
 
-    public BufferedReader getEventsStream(String roomId) {
+    public BufferedReader getEventsStream(String roomId) throws IOException {
         InputStream res = jitter.requests().stream("/rooms/" + roomId + "/events");
         return new BufferedReader(new InputStreamReader(res));
     }
@@ -47,26 +48,30 @@ public class JitterStream {
             return new FutureTask<Object>(() -> {}, null);
         messageStreaming.add(roomId);
         return jitter.executor().submit(() -> {
-            final BufferedReader reader = getMessagesStream(roomId);
-            new Thread(() -> {
-                try {
-                    while (true) {
-                        String line = reader.readLine();
-                        if (line != null && !(line = line.trim()).isEmpty()) {
-                            try {
-                                System.out.println(line);
-                                JSONObject object = new JSONObject(line);
-                                Message event = new MessageImpl(jitter, room, object);
-                                jitter.onMessage(event);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+            try {
+                final BufferedReader reader = getMessagesStream(roomId);
+                new Thread(() -> {
+                    try {
+                        while (true) {
+                            String line = reader.readLine();
+                            if (line != null && !(line = line.trim()).isEmpty()) {
+                                try {
+                                    System.out.println(line);
+                                    JSONObject object = new JSONObject(line);
+                                    Message event = new MessageImpl(jitter, room, object);
+                                    jitter.onMessage(event);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
+                }).start();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
     }
 
@@ -76,25 +81,29 @@ public class JitterStream {
             return new FutureTask<Object>(() -> {}, null);
         eventsStreaming.add(roomId);
         return jitter.executor().submit(() -> {
-            final BufferedReader reader = getEventsStream(roomId);
-            new Thread(() -> {
-                try {
-                    while (true) {
-                        String line = reader.readLine();
-                        if (line != null && !(line = line.trim()).isEmpty()) {
-                            try {
-                                JSONObject object = new JSONObject(line);
-                                RoomEvent event = new RoomEventImpl(jitter, room, object);
-                                jitter.onEvent(event);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+            try {
+                final BufferedReader reader = getEventsStream(roomId);
+                new Thread(() -> {
+                    try {
+                        while (true) {
+                            String line = reader.readLine();
+                            if (line != null && !(line = line.trim()).isEmpty()) {
+                                try {
+                                    JSONObject object = new JSONObject(line);
+                                    RoomEvent event = new RoomEventImpl(jitter, room, object);
+                                    jitter.onEvent(event);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
+                }).start();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
     }
 

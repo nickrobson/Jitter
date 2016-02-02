@@ -54,19 +54,14 @@ public class JitterRequests {
             .header("Authorization", "Bearer " + jitter.token);
     }
 
-    public InputStream stream(String url) {
+    public InputStream stream(String url) throws IOException {
         if (url.startsWith("/"))
             url = "https://stream.gitter.im/v1" + url;
-        try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.addRequestProperty("Accept", "application/json");
-            conn.addRequestProperty("Authorization", "Bearer " + jitter.token);
-            conn.setReadTimeout(0);
-            return conn.getInputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.addRequestProperty("Accept", "application/json");
+        conn.addRequestProperty("Authorization", "Bearer " + jitter.token);
+        conn.setReadTimeout(0);
+        return conn.getInputStream();
     }
 
 }
