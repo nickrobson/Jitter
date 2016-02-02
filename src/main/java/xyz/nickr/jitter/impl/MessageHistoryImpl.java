@@ -12,6 +12,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import xyz.nickr.jitter.Jitter;
 import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.MessageHistory;
+import xyz.nickr.jitter.api.Room;
 
 public class MessageHistoryImpl implements MessageHistory {
 
@@ -20,13 +21,17 @@ public class MessageHistoryImpl implements MessageHistory {
 
     public MessageHistoryImpl(RoomImpl room) {
         this.room = room;
-
         loadMessages(50);
     }
 
     public MessageHistoryImpl(RoomImpl room, List<Message> messages) {
         this.room = room;
         this.messages = messages;
+    }
+
+    @Override
+    public Room getRoom() {
+        return room;
     }
 
     @Override
