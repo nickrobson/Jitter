@@ -8,6 +8,10 @@ import java.util.Optional;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.HttpRequestWithBody;
+
 import xyz.nickr.jitter.Jitter;
 import xyz.nickr.jitter.api.MentionedIssue;
 import xyz.nickr.jitter.api.MentionedUser;
@@ -106,6 +110,20 @@ public class MessageImpl implements Message {
     @Override
     public Optional<Date> getEditTimestamp() {
         return json.has("editedAt") ? Optional.of(javax.xml.bind.DatatypeConverter.parseDateTime(json.optString("editedAt")).getTime()) : Optional.empty();
+    }
+
+    @Override
+    public void edit(String message) {
+        HttpRequestWithBody req = jitter.requests().put("/rooms/" + room.getID() + "/chatMessages/" + getID());
+        json.put("editedAt", new Date());
+        json.put("text", message);
+        json.put("html", jitter.toHtml(message));
+        req.body(new JsonNode(json.toString()));
+        try {
+            req.asString(); // submit it
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

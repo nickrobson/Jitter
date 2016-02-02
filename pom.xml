@@ -2,7 +2,7 @@
   	<modelVersion>4.0.0</modelVersion>
   	<groupId>xyz.nickr</groupId>
   	<artifactId>Jitter</artifactId>
-  	<version>0.0.1-SNAPSHOT</version>
+  	<version>0.0.1</version>
   
   	<dependencies>
   		<dependency>
@@ -10,6 +10,12 @@
 		    <artifactId>unirest-java</artifactId>
 		    <version>1.4.7</version>
 		  	<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rjeschke</groupId>
+			<artifactId>txtmark</artifactId>
+			<version>0.13</version>
+			<scope>compile</scope>
 		</dependency>
   	</dependencies>
   

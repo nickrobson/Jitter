@@ -28,6 +28,8 @@ public interface Message {
 
     Optional<Date> getEditTimestamp();
 
+    void edit(String message);
+
     boolean isRead();
 
     int getReadCount();

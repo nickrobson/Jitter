@@ -1,14 +1,19 @@
 package xyz.nickr.jitter;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.github.rjeschke.txtmark.Processor;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import xyz.nickr.jitter.api.ListenerSet;
@@ -22,6 +27,8 @@ import xyz.nickr.jitter.impl.RoomImpl;
 import xyz.nickr.jitter.impl.UserImpl;
 
 public final class Jitter {
+
+    public static final Pattern URL_PATTERN = Pattern.compile("(?i)\\b((?:[a-z][\\w-]+:(?:/{1,3}|[a-z0-9%])|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’]))\\b");
 
     public static JitterBuilder builder() {
         return new JitterBuilder();
@@ -103,6 +110,19 @@ public final class Jitter {
             JSONObject o = requests().get("/rooms/" + id).asJson().getBody().getObject();
             return new RoomImpl(this, o);
         } catch (UnirestException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String toHtml(String message) {
+        try {
+            Matcher matcher = URL_PATTERN.matcher(message);
+            message = matcher.replaceAll("[$1]($1)");
+            message = Processor.process(message);
+            message = URLEncoder.encode(message, "UTF-8");
+            return message;
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             return null;
         }
