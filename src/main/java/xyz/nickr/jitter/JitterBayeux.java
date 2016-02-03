@@ -28,6 +28,7 @@ public class JitterBayeux {
     public static final String ROOM_MESSAGES_READ_BY = "/api/v1/rooms/{roomId}/chatMessages/{messageId}/readBy";
 
     private static final MessageListener CHANNEL_LISTENER = (ch, msg) -> {
+        System.out.println("Received Object: " + msg);
         msg.entrySet().forEach(e -> System.out.println(e));
     };
 
@@ -48,7 +49,6 @@ public class JitterBayeux {
                 @Override
                 public void customize(Request request) {
                     request.header(HttpHeader.AUTHORIZATION, jitter.token);
-                    request.header(HttpHeader.ACCEPT, "application/json");
                 }
 
             };
@@ -86,7 +86,6 @@ public class JitterBayeux {
     }
 
     public void subscribe(ChannelId chan) {
-        System.out.println(chan.toString());
         ClientSessionChannel channel = bayeux.getChannel(chan);
         channel.subscribe(CHANNEL_LISTENER);
     }
