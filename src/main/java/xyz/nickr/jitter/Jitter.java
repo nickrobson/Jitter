@@ -19,8 +19,10 @@ import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.Room;
 import xyz.nickr.jitter.api.RoomEvent;
 import xyz.nickr.jitter.api.User;
+import xyz.nickr.jitter.api.UserPresenceEvent;
 import xyz.nickr.jitter.api.listener.JitterEventListener;
 import xyz.nickr.jitter.api.listener.JitterMessageListener;
+import xyz.nickr.jitter.api.listener.JitterUserPresenceListener;
 import xyz.nickr.jitter.impl.RoomImpl;
 import xyz.nickr.jitter.impl.UserImpl;
 
@@ -55,6 +57,7 @@ public final class Jitter {
 
     final ListenerSet<JitterMessageListener> messageListeners;
     final ListenerSet<JitterEventListener> eventListeners;
+    final ListenerSet<JitterUserPresenceListener> presenceListeners;
 
     Jitter(String token, String api_url) {
         this.token = Objects.requireNonNull(token, "token");
@@ -67,10 +70,19 @@ public final class Jitter {
 
         this.messageListeners = new ListenerSet<>();
         this.eventListeners = new ListenerSet<>();
+        this.presenceListeners = new ListenerSet<>();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            this.bayeux.disconnect();
-            this.poller.stop();
+            try {
+                this.bayeux.disconnect();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            try {
+                this.poller.stop();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }));
     }
 
@@ -128,6 +140,10 @@ public final class Jitter {
         eventListeners.forEach(l -> l.onEvent(event));
     }
 
+    public void onPresence(UserPresenceEvent event) {
+        presenceListeners.forEach(l -> l.onUserPresence(event));
+    }
+
     /**
      * Registers a {@link JitterMessageListener message listener}.
      *
@@ -144,6 +160,15 @@ public final class Jitter {
      */
     public void onEvent(JitterEventListener listener) {
         eventListeners.add(listener);
+    }
+
+    /**
+     * Registers a {@link JitterEventListener event listener}.
+     *
+     * @param listener The listener.
+     */
+    public void onPresence(JitterUserPresenceListener listener) {
+        presenceListeners.add(listener);
     }
 
     /**

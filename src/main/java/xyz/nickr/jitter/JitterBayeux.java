@@ -1,10 +1,13 @@
 package xyz.nickr.jitter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.cometd.bayeux.ChannelId;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.client.ClientSessionChannel.MessageListener;
@@ -12,7 +15,10 @@ import org.cometd.client.BayeuxClient;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class JitterBayeux {
 
@@ -21,16 +27,11 @@ public class JitterBayeux {
     public static final String USER_ROOMS = "/api/v1/user/{userId}/rooms";
     public static final String USER_ROOM_UNREAD = "/api/v1/user/{userId}/rooms/{roomId}/unreadItems";
     public static final String USER_INFORMATION = "/api/v1/user/{userId}";
-    public static final String ROOM_USER_PRESENCE = "/api/v1/rooms/{roomId}";
+    public static final String ROOM = "/api/v1/rooms/{roomId}";
     public static final String ROOM_USERS = "/api/v1/rooms/{roomId}/users";
     public static final String ROOM_EVENTS = "/api/v1/rooms/{roomId}/events";
     public static final String ROOM_MESSAGES = "/api/v1/rooms/{roomId}/chatMessages";
     public static final String ROOM_MESSAGES_READ_BY = "/api/v1/rooms/{roomId}/chatMessages/{messageId}/readBy";
-
-    private static final MessageListener CHANNEL_LISTENER = (ch, msg) -> {
-        System.out.println("Received Object: " + msg);
-        msg.entrySet().forEach(e -> System.out.println(e));
-    };
 
     private final Jitter jitter;
     private final HttpClient http;
@@ -39,20 +40,32 @@ public class JitterBayeux {
     JitterBayeux(Jitter jitter) {
         this.jitter = jitter;
         try {
-            this.http = new HttpClient();
-            this.http.setConnectTimeout(5000);
-            this.http.start();
 
             Map<String, Object> options = new HashMap<>();
-            LongPollingTransport transport = new LongPollingTransport(options, http) {
+
+            this.http = new HttpClient(new SslContextFactory());
+            this.http.setConnectTimeout(5000);
+            this.http.setIdleTimeout(0);
+            this.http.start();
+
+            LongPollingTransport lp = new LongPollingTransport(options, this.http) {
 
                 @Override
                 public void customize(Request request) {
-                    request.header(HttpHeader.AUTHORIZATION, jitter.token);
+                    StringBuilder json = new StringBuilder();
+                    request.getContent().forEach(b -> json.append(new String(b.array(), StandardCharsets.UTF_8)));
+                    JSONArray array = new JSONArray(json.toString());
+                    JSONObject tokenObject = new JSONObject();
+                    tokenObject.put("token", jitter.token);
+                    for (int i = 0, j = array.length(); i < j; i++)
+                        array.getJSONObject(i).put("ext", tokenObject);
+                    request.content(new StringContentProvider(array.toString()));
                 }
 
             };
-            this.bayeux = new BayeuxClient(FAYE_ENDPOINT, transport);
+
+            this.bayeux = new BayeuxClient(FAYE_ENDPOINT, lp);
+            Logger.getLogger(BayeuxClient.class).setLevel(Level.ALL);
             this.bayeux.handshake();
             this.bayeux.waitFor(1000, BayeuxClient.State.CONNECTED);
         } catch (Exception e) {
@@ -85,12 +98,14 @@ public class JitterBayeux {
         return new ChannelId(path);
     }
 
+    public static final MessageListener LISTENER = (ch, msg) -> {
+        System.out.println("Received Object:");
+        System.out.println(new JSONObject(msg).toString());
+    };
+
     public void subscribe(ChannelId chan) {
         ClientSessionChannel channel = bayeux.getChannel(chan);
-        channel.subscribe(CHANNEL_LISTENER, (c, msg) -> {
-            System.out.println("Subscribed! Object: " + msg);
-            msg.entrySet().forEach(e -> System.out.println(e));
-        });
+        channel.subscribe(LISTENER);
         System.out.println("subscribed to " + chan);
     }
 
@@ -106,8 +121,8 @@ public class JitterBayeux {
         subscribe(resolve(USER_INFORMATION, mapOf(new String[][]{ {"userId", userId} })));
     }
 
-    public void subscribeRoomUserPresence(String roomId) {
-        subscribe(resolve(ROOM_USER_PRESENCE, mapOf(new String[][]{ {"roomId", roomId} })));
+    public void subscribeRoom(String roomId) {
+        subscribe(resolve(ROOM, mapOf(new String[][]{ {"roomId", roomId} })));
     }
 
     public void subscribeRoomUsers(String roomId) {

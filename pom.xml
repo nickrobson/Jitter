@@ -22,6 +22,11 @@
 			<artifactId>cometd-java-client</artifactId>
 			<version>3.0.8</version>
 		</dependency>
+		<dependency>
+			<groupId>org.cometd.java</groupId>
+			<artifactId>cometd-java-websocket-javax-client</artifactId>
+			<version>3.0.8</version>
+		</dependency>
   	</dependencies>
   
   	<build>
