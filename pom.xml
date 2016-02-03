@@ -2,7 +2,7 @@
   	<modelVersion>4.0.0</modelVersion>
   	<groupId>xyz.nickr</groupId>
   	<artifactId>Jitter</artifactId>
-  	<version>0.0.1</version>
+  	<version>0.1.0</version>
   
   	<dependencies>
   		<dependency>
@@ -16,6 +16,11 @@
 			<artifactId>txtmark</artifactId>
 			<version>0.13</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cometd.java</groupId>
+			<artifactId>cometd-java-client</artifactId>
+			<version>3.0.8</version>
 		</dependency>
   	</dependencies>
   
