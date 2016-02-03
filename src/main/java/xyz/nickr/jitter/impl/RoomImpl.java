@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import xyz.nickr.jitter.Jitter;
@@ -157,8 +158,29 @@ public class RoomImpl implements Room {
     }
 
     @Override
+    public Message getMessage(String id) {
+        try {
+            JSONObject json = Unirest.get("/rooms/" + getID() + "/chatMessages/" + id).asJson().getBody().getObject();
+            return new MessageImpl(jitter, this, json);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
     public MessageHistory getMessageHistory() {
         return new MessageHistoryImpl(this);
+    }
+
+    @Override
+    public MessageHistory getMessagesBefore(Message message) {
+        return new MessageHistoryImpl(this, message, true);
+    }
+
+    @Override
+    public MessageHistory getMessagesAfter(Message message) {
+        return new MessageHistoryImpl(this, message, false);
     }
 
     @Override

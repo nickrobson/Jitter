@@ -44,8 +44,14 @@ public final class Jitter {
 
     public final String token;
     final String api_url;
-    final JitterStream stream;
+
+    User user;
+
     final JitterRequests requests;
+
+    final JitterStream stream;
+    final JitterBayeux bayeux;
+    final JitterPoller poller;
 
     final ListenerSet<JitterMessageListener> messageListeners;
     final ListenerSet<JitterEventListener> eventListeners;
@@ -54,10 +60,18 @@ public final class Jitter {
         this.token = Objects.requireNonNull(token, "token");
         this.api_url = Objects.requireNonNull(api_url, "api url");
         this.requests = new JitterRequests(this);
+
         this.stream = new JitterStream(this);
+        this.bayeux = new JitterBayeux(this);
+        this.poller = new JitterPoller(this);
 
         this.messageListeners = new ListenerSet<>();
         this.eventListeners = new ListenerSet<>();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            this.bayeux.disconnect();
+            this.poller.stop();
+        }));
     }
 
     /**
@@ -67,6 +81,24 @@ public final class Jitter {
      */
     public JitterStream stream() {
         return stream;
+    }
+
+    /**
+     * Gets this instance's {@link JitterBayeux} object.
+     *
+     * @return The bayeux object.
+     */
+    public JitterBayeux bayeux() {
+        return bayeux;
+    }
+
+    /**
+     * Gets this instance's {@link JitterPoller} object.
+     *
+     * @return The poller object.
+     */
+    public JitterPoller poller() {
+        return poller;
     }
 
     /**
@@ -121,8 +153,10 @@ public final class Jitter {
      */
     public User getCurrentUser() {
         try {
+            if (user != null)
+                return user;
             JSONArray arr = requests().get("/user").asJson().getBody().getArray();
-            return new UserImpl(this, arr.getJSONObject(0));
+            return user = new UserImpl(this, arr.getJSONObject(0));
         } catch (UnirestException e) {
             e.printStackTrace();
             return null;

@@ -1,12 +1,16 @@
 package xyz.nickr.jitter.impl;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import xyz.nickr.jitter.Jitter;
@@ -18,6 +22,7 @@ public class MessageHistoryImpl implements MessageHistory {
 
     private RoomImpl room;
     private List<Message> messages;
+    private boolean loadBefore = true;
 
     public MessageHistoryImpl(RoomImpl room) {
         this.room = room;
@@ -27,6 +32,13 @@ public class MessageHistoryImpl implements MessageHistory {
     public MessageHistoryImpl(RoomImpl room, List<Message> messages) {
         this.room = room;
         this.messages = messages;
+    }
+
+    public MessageHistoryImpl(RoomImpl room, Message message, boolean loadBefore) {
+        this.room = room;
+        this.messages = new LinkedList<>(Arrays.asList(message));
+        this.loadBefore = loadBefore;
+        loadMessages(50);
     }
 
     @Override
@@ -43,8 +55,11 @@ public class MessageHistoryImpl implements MessageHistory {
     public List<Message> loadMessages(int n) {
         try {
             String params = "?limit=" + n;
-            if (messages != null) {
-                params += "&beforeId=" + messages.get(0).getID();
+            if (messages != null && !messages.isEmpty()) {
+                if (loadBefore)
+                    params += "&beforeId=" + messages.get(0).getID();
+                else
+                    params += "&afterId=" + messages.get(messages.size() - 1).getID();
             }
             Jitter jitter = room.getJitter();
             List<Message> messages = new LinkedList<>();
@@ -57,7 +72,10 @@ public class MessageHistoryImpl implements MessageHistory {
             if (this.messages == null) {
                 this.messages = messages;
             } else {
-                this.messages.addAll(0, messages);
+                if (loadBefore)
+                    this.messages.addAll(0, messages);
+                else
+                    this.messages.addAll(messages);
             }
             return messages;
         } catch (UnirestException ex) {
@@ -72,10 +90,13 @@ public class MessageHistoryImpl implements MessageHistory {
         int size;
         do {
             size = sofar.size();
-            List<Message> n = loadMessages(50);
-            if (n == null || n.isEmpty())
+            List<Message> msgs = loadMessages(50);
+            if (msgs == null || msgs.isEmpty())
                 break;
-            sofar.addAll(0, n);
+            if (loadBefore)
+                sofar.addAll(0, msgs);
+            else
+                sofar.addAll(msgs);
         } while (size < sofar.size());
         return sofar;
     }
@@ -98,6 +119,37 @@ public class MessageHistoryImpl implements MessageHistory {
             }
         }
         return new MessageHistoryImpl(room, Collections.emptyList());
+    }
+
+    @Override
+    public Message getEarliest() {
+        return messages.isEmpty() ? null : messages.get(0);
+    }
+
+    @Override
+    public Message getLatest() {
+        return messages.isEmpty() ? null : messages.get(messages.size() - 1);
+    }
+
+    @Override
+    public void markRead() {
+        JSONObject json = new JSONObject();
+        JSONArray chat = new JSONArray();
+        for (Message message : messages) {
+            if (!message.isRead())
+                chat.put(message.getID());
+            ((MessageImpl) message).setRead(true);
+        }
+        if (chat.length() == 0)
+            return;
+        json.put("chat", chat);
+        try {
+            Unirest.post("/user/" + room.getJitter().getCurrentUser().getID() + "/rooms/" + room.getID() + "/unreadItems")
+                .body(new JsonNode(json.toString()))
+                .asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
     }
 
 }

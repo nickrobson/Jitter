@@ -142,11 +142,38 @@ public interface Room {
     List<RoomUser> getUsers();
 
     /**
+     * Gets the {@link Message} of a given ID.
+     *
+     * @param id The ID.
+     *
+     * @return The message, or null if no such message.
+     */
+    Message getMessage(String id);
+
+    /**
      * Gets this room's message history.
      *
      * @return The message history;
      */
     MessageHistory getMessageHistory();
+
+    /**
+     * Gets this room's message history, with messages before and including the given message.
+     *
+     * @param message The message.
+     *
+     * @return The message history.
+     */
+    MessageHistory getMessagesBefore(Message message);
+
+    /**
+     * Gets this room's message history, with messages after and including the given message.
+     *
+     * @param message The message.
+     *
+     * @return The message history.
+     */
+    MessageHistory getMessagesAfter(Message message);
 
     /**
      * Sends a message to this room.

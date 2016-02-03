@@ -131,6 +131,10 @@ public class MessageImpl implements Message {
         return !json.getBoolean("unread");
     }
 
+    void setRead(boolean read) {
+        json.put("unread", !read);
+    }
+
     @Override
     public int getReadCount() {
         return json.getInt("readBy");

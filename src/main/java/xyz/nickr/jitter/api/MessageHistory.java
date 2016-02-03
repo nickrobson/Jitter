@@ -58,4 +58,23 @@ public interface MessageHistory {
      */
     MessageHistory after(Date date);
 
+    /**
+     * Gets the message that was sent earliest.
+     *
+     * @return The message.
+     */
+    Message getEarliest();
+
+    /**
+     * Gets the message that was sent most recently.
+     *
+     * @return The message.
+     */
+    Message getLatest();
+
+    /**
+     * Marks all messages in this history as read.
+     */
+    void markRead();
+
 }
