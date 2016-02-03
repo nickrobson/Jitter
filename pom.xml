@@ -24,8 +24,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cometd.java</groupId>
-			<artifactId>cometd-java-websocket-javax-client</artifactId>
+			<artifactId>cometd-java-websocket-jetty-client</artifactId>
 			<version>3.0.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.14</version>
 		</dependency>
   	</dependencies>
   
