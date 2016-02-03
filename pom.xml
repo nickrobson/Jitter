@@ -2,7 +2,7 @@
   	<modelVersion>4.0.0</modelVersion>
   	<groupId>xyz.nickr</groupId>
   	<artifactId>Jitter</artifactId>
-  	<version>0.2.0</version>
+  	<version>1.0.0</version>
   	
   	<properties>
   		<cometd.version>3.0.8</cometd.version>
