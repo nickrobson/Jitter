@@ -91,6 +91,7 @@ public class JitterBayeux {
             System.out.println("Subscribed! Object: " + msg);
             msg.entrySet().forEach(e -> System.out.println(e));
         });
+        System.out.println("subscribed to " + chan);
     }
 
     public void subscribeUserRooms(String userId) {
