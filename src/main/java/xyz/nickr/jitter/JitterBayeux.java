@@ -87,7 +87,10 @@ public class JitterBayeux {
 
     public void subscribe(ChannelId chan) {
         ClientSessionChannel channel = bayeux.getChannel(chan);
-        channel.subscribe(CHANNEL_LISTENER);
+        channel.subscribe(CHANNEL_LISTENER, (c, msg) -> {
+            System.out.println("Subscribed! Object: " + msg);
+            msg.entrySet().forEach(e -> System.out.println(e));
+        });
     }
 
     public void subscribeUserRooms(String userId) {
