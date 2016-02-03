@@ -9,9 +9,10 @@ import org.cometd.bayeux.ChannelId;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.client.ClientSessionChannel.MessageListener;
 import org.cometd.client.BayeuxClient;
-import org.cometd.client.transport.ClientTransport;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.http.HttpHeader;
 
 public class JitterBayeux {
 
@@ -42,7 +43,15 @@ public class JitterBayeux {
             this.http.start();
 
             Map<String, Object> options = new HashMap<>();
-            ClientTransport transport = new LongPollingTransport.Factory(http).newClientTransport(FAYE_ENDPOINT, options);
+            LongPollingTransport transport = new LongPollingTransport(options, http) {
+
+                @Override
+                public void customize(Request request) {
+                    request.header(HttpHeader.AUTHORIZATION, jitter.token);
+                    request.header(HttpHeader.ACCEPT, "application/json");
+                }
+
+            };
             this.bayeux = new BayeuxClient(FAYE_ENDPOINT, transport);
             this.bayeux.handshake();
             this.bayeux.waitFor(1000, BayeuxClient.State.CONNECTED);
@@ -77,6 +86,7 @@ public class JitterBayeux {
     }
 
     public void subscribe(ChannelId chan) {
+        System.out.println(chan.toString());
         ClientSessionChannel channel = bayeux.getChannel(chan);
         channel.subscribe(CHANNEL_LISTENER);
     }
