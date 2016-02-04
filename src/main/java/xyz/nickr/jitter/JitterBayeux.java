@@ -187,9 +187,13 @@ public class JitterBayeux {
 
     public void subscribeRoomMessages(final Room room) {
         subscribe(resolve(ROOM_MESSAGES, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            JSONObject model = new JSONObject(msg).getJSONObject("data").getJSONObject("model");
-            System.out.println(msg);
-            jitter.onMessage(new MessageImpl(jitter, room, model));
+            JSONObject data = new JSONObject(msg).getJSONObject("data");
+            String op = data.getString("operation");
+            if (op.equals("create")) {
+                jitter.onMessage(new MessageImpl(jitter, room, data.getJSONObject("model")));
+            } else if (op.equals("patch")) {
+
+            }
         });
     }
 
