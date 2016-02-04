@@ -1,4 +1,4 @@
-package xyz.nickr.jitter.api;
+package xyz.nickr.jitter.api.event;
 
 import java.util.Date;
 import java.util.Optional;
@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.json.JSONObject;
 
 import xyz.nickr.jitter.Jitter;
+import xyz.nickr.jitter.api.Room;
+import xyz.nickr.jitter.api.User;
 
 /**
  * Represents an event that is broadcast in a room.

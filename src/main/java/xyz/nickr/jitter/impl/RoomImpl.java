@@ -2,6 +2,9 @@ package xyz.nickr.jitter.impl;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -35,6 +38,18 @@ public class RoomImpl implements Room {
     @Override
     public JSONObject asJSON() {
         return json;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void update(JSONObject data) {
+        Stream<String> stream = data.keySet().stream().map(s -> s.toString());
+        Set<String> keys = stream.collect(Collectors.toSet());
+        for (String s : keys) {
+            json.put(s, data.get(s));
+        }
+        if (keys.isEmpty())
+            json.remove("favourite");
     }
 
     @Override
@@ -98,7 +113,7 @@ public class RoomImpl implements Room {
 
     @Override
     public boolean isFavourite() {
-        return json.has("favourite") && json.getInt("favourite") == 1;
+        return json.has("favourite") && json.getInt("favourite") > 0;
     }
 
     @Override

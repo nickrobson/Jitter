@@ -1,12 +1,9 @@
 package xyz.nickr.jitter.api.listener;
 
-import xyz.nickr.jitter.api.Message;
-import xyz.nickr.jitter.api.Room;
-import xyz.nickr.jitter.api.User;
-import xyz.nickr.jitter.api.UserPresenceEvent;
+import xyz.nickr.jitter.api.event.UserPresenceEvent;
 
 /**
- * Represents a listener for when a {@link Message message} is sent to a {@link Room room} by a {@link User user}.
+ * Represents a listener for when a user starts or stops watching a room.
  *
  * @author Nick Robson
  */

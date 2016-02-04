@@ -1,4 +1,4 @@
-package xyz.nickr.jitter.impl;
+package xyz.nickr.jitter.impl.event;
 
 import java.util.Date;
 import java.util.Optional;
@@ -7,8 +7,9 @@ import org.json.JSONObject;
 
 import xyz.nickr.jitter.Jitter;
 import xyz.nickr.jitter.api.Room;
-import xyz.nickr.jitter.api.RoomEvent;
 import xyz.nickr.jitter.api.User;
+import xyz.nickr.jitter.api.event.RoomEvent;
+import xyz.nickr.jitter.impl.UserImpl;
 
 public class RoomEventImpl implements RoomEvent {
 

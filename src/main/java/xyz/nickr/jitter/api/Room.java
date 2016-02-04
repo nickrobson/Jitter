@@ -198,4 +198,11 @@ public interface Room {
         getJitter().stream().beginEventsStream(this);
     }
 
+    /**
+     * Updates this Room with the given JSON data.
+     *
+     * @param data The data.
+     */
+    void update(JSONObject data);
+
 }

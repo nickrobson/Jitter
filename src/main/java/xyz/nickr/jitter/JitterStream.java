@@ -10,9 +10,9 @@ import org.json.JSONObject;
 
 import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.Room;
-import xyz.nickr.jitter.api.RoomEvent;
+import xyz.nickr.jitter.api.event.RoomEvent;
 import xyz.nickr.jitter.impl.MessageImpl;
-import xyz.nickr.jitter.impl.RoomEventImpl;
+import xyz.nickr.jitter.impl.event.RoomEventImpl;
 
 /**
  * A utility class for managing the Gitter Streaming API on behalf of a Jitter object.
