@@ -115,7 +115,6 @@ public class JitterBayeux {
     public void subscribe(ChannelId chan, MessageListener listener) {
         ClientSessionChannel channel = bayeux.getChannel(chan);
         channel.subscribe(listener);
-        // System.out.println("subscribed to " + chan);
     }
 
     public void subscribeUserRooms(final User user) {
@@ -188,7 +187,9 @@ public class JitterBayeux {
 
     public void subscribeRoomMessages(final Room room) {
         subscribe(resolve(ROOM_MESSAGES, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            jitter.onMessage(new MessageImpl(jitter, room, new JSONObject(msg).getJSONObject("data").getJSONObject("model")));
+            JSONObject model = new JSONObject(msg).getJSONObject("data").getJSONObject("model");
+            System.out.println(model);
+            jitter.onMessage(new MessageImpl(jitter, room, model));
         });
     }
 
