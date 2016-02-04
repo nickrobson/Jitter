@@ -34,11 +34,11 @@ public class MessageImpl implements Message {
 
     private final MessageMetadata metadata;
 
-    public MessageImpl(Jitter jitter, Room room, JSONObject json) {
+    public MessageImpl(Jitter jitter, Room room, User user, JSONObject json) {
         this.jitter = jitter;
         this.json = json;
         this.room = room;
-        this.user = new UserImpl(jitter, json.getJSONObject("fromUser"));
+        this.user = user;
 
         this.urls = new LinkedList<>();
         JSONArray urls = json.getJSONArray("urls");

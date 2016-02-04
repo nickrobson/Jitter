@@ -176,7 +176,7 @@ public class RoomImpl implements Room {
     public Message getMessage(String id) {
         try {
             JSONObject json = Unirest.get("/rooms/" + getID() + "/chatMessages/" + id).asJson().getBody().getObject();
-            return new MessageImpl(jitter, this, json);
+            return new MessageImpl(jitter, this, new UserImpl(jitter, json.getJSONObject("fromUser")), json);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -206,7 +206,7 @@ public class RoomImpl implements Room {
             JSONObject res = jitter.requests().post("/rooms/" + getID() + "/chatMessages")
                                         .body(new JsonNode(json.toString()))
                                         .asJson().getBody().getObject();
-            return new MessageImpl(jitter, this, res);
+            return new MessageImpl(jitter, this, new UserImpl(jitter, res.getJSONObject("fromUser")), res);
         } catch (UnirestException e) {
             e.printStackTrace();
             return null;

@@ -67,7 +67,7 @@ public class MessageHistoryImpl implements MessageHistory {
             if (arr.length() == 0)
                 return messages;
             for (int i = 0, j = arr.length(); i < j; i++) {
-                messages.add(new MessageImpl(jitter, room, arr.getJSONObject(i)));
+                messages.add(new MessageImpl(jitter, room, new UserImpl(jitter, arr.getJSONObject(i).getJSONObject("fromUser")), arr.getJSONObject(i)));
             }
             if (this.messages == null) {
                 this.messages = messages;

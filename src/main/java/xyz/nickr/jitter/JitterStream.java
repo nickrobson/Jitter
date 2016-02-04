@@ -6,12 +6,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.json.JSONObject;
 
 import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.Room;
 import xyz.nickr.jitter.api.event.RoomEvent;
 import xyz.nickr.jitter.impl.MessageImpl;
+import xyz.nickr.jitter.impl.UserImpl;
 import xyz.nickr.jitter.impl.event.RoomEventImpl;
 
 /**
@@ -92,7 +94,7 @@ public class JitterStream {
                     if (line != null && !(line = line.trim()).isEmpty()) {
                         try {
                             JSONObject object = new JSONObject(line);
-                            Message event = new MessageImpl(jitter, room, object);
+                            Message event = new MessageImpl(jitter, room, new UserImpl(jitter, object.getJSONObject("fromUser")), object);
                             jitter.onMessage(event);
                         } catch (Exception e) {
                             e.printStackTrace();

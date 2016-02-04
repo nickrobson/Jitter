@@ -119,7 +119,7 @@ public class JitterBayeux {
 
     public void subscribeUserRooms(final User user) {
         subscribe(resolve(USER_ROOMS, mapOf(new String[][]{ {"userId", user.getID()} })), (ch, msg) -> {
-            JSONObject json = new JSONObject(msg);
+            JSONObject json = new JSONObject(msg.getJSON());
             JSONObject data = json.getJSONObject("data");
             JSONObject model = data.optJSONObject("model");
             String op = data.getString("operation");
@@ -136,13 +136,13 @@ public class JitterBayeux {
 
     public void subscribeUserRoomUnread(final User user, final Room room) {
         subscribe(resolve(USER_ROOM_UNREAD, mapOf(new String[][]{ {"userId", user.getID()}, {"roomId", room.getID()} })), (ch, msg) -> {
-            System.out.println("User room unread: " + new JSONObject(msg));
+            System.out.println("User room unread: " + new JSONObject(msg.getJSON()));
         });
     }
 
     public void subscribeUserInformation(final User user) {
         subscribe(resolve(USER_INFORMATION, mapOf(new String[][]{ {"userId", user.getID()} })), (ch, msg) -> {
-            JSONObject json = new JSONObject(msg);
+            JSONObject json = new JSONObject(msg.getJSON());
             JSONObject data = json.getJSONObject("data");
             String notif = data.getString("notification");
             String roomId = data.getString("troupeId");
@@ -156,20 +156,20 @@ public class JitterBayeux {
             } else if (notif.equals("troupe_mention")) {
                 jitter.onMention(new RoomMentionEventImpl(jitter, room, data.getInt("mentions"), json));
             } else {
-                System.out.println("User information: " + new JSONObject(msg));
+                System.out.println("User information: " + json);
             }
         });
     }
 
     public void subscribeRoom(final Room room) {
         subscribe(resolve(ROOM, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            jitter.onPresence(new UserPresenceEventImpl(jitter, room, new JSONObject(msg)));
+            jitter.onPresence(new UserPresenceEventImpl(jitter, room, new JSONObject(msg.getJSON())));
         });
     }
 
     public void subscribeRoomUsers(final Room room) {
         subscribe(resolve(ROOM_USERS, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            JSONObject json = new JSONObject(msg);
+            JSONObject json = new JSONObject(msg.getJSON());
             String op = json.getJSONObject("data").getString("operation");
             if (op.equals("create")) {
                 jitter.onJoin(new UserJoinEventImpl(jitter, room, new UserImpl(jitter, json.getJSONObject("data").getJSONObject("model")), json));
@@ -181,20 +181,18 @@ public class JitterBayeux {
 
     public void subscribeRoomEvents(final Room room) {
         subscribe(resolve(ROOM_EVENTS, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            jitter.onEvent(new RoomEventImpl(jitter, room, new JSONObject(msg).getJSONObject("data").getJSONObject("model")));
+            jitter.onEvent(new RoomEventImpl(jitter, room, new JSONObject(msg.getJSON()).getJSONObject("data").getJSONObject("model")));
         });
     }
 
     public void subscribeRoomMessages(final Room room) {
         subscribe(resolve(ROOM_MESSAGES, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            JSONObject data = new JSONObject(msg).getJSONObject("data");
+            JSONObject data = new JSONObject(msg.getJSON()).getJSONObject("data");
+            JSONObject model = data.optJSONObject("model");
             String op = data.getString("operation");
-            System.out.println(msg);
-            System.out.println(data);
-            System.out.println(data.getJSONObject("model"));
             if (op.equals("create")) {
-                System.out.println(data.getJSONObject("model").getJSONObject("fromUser"));
-                jitter.onMessage(new MessageImpl(jitter, room, data.getJSONObject("model")));
+                JSONObject fromUser = model.getJSONObject("fromUser");
+                jitter.onMessage(new MessageImpl(jitter, room, new UserImpl(jitter, fromUser), model));
             } else if (op.equals("patch")) {
 
             }
