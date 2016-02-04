@@ -193,6 +193,7 @@ public class JitterBayeux {
             System.out.println(data);
             System.out.println(data.getJSONObject("model"));
             if (op.equals("create")) {
+                System.out.println(data.getJSONObject("model").getJSONObject("fromUser"));
                 jitter.onMessage(new MessageImpl(jitter, room, data.getJSONObject("model")));
             } else if (op.equals("patch")) {
 
