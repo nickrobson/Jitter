@@ -17,6 +17,8 @@ public class JitterTest {
         User user = jitter.getCurrentUser();
         Room room = jitter.getRoom("56b06b13e610378809bf71e7");
 
+        room.sendMessage("hey");
+
         jitter.bayeux().subscribeUserRooms(user);
         jitter.bayeux().subscribeUserRoomUnread(user, room);
         jitter.bayeux().subscribeUserInformation(user);
