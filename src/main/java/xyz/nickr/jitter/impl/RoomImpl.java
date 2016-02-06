@@ -112,6 +112,11 @@ public class RoomImpl implements Room {
     }
 
     @Override
+    public boolean isMember() {
+        return json.has("roomMember") ? json.getBoolean("roomMember") : true;
+    }
+
+    @Override
     public boolean isFavourite() {
         return json.has("favourite") && json.getInt("favourite") > 0;
     }

@@ -323,7 +323,9 @@ public final class Jitter {
                 String id = o.getString("id");
                 if (!this.rooms.containsKey(id))
                     this.rooms.put(id, new RoomImpl(this, o));
-                rooms.add(this.rooms.get(id));
+                Room room = this.rooms.get(id);
+                if (room.isMember())
+                    rooms.add(room);
             }
             return rooms;
         } catch (UnirestException e) {

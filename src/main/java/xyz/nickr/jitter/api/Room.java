@@ -90,6 +90,13 @@ public interface Room {
     String getLastAccessTime();
 
     /**
+     * Gets whether or not the current user is a member of this room.
+     *
+     * @return True if it is; false otherwise.
+     */
+    boolean isMember();
+
+    /**
      * Gets whether or not this room is marked as a favourite room.
      *
      * @return True if it is; false otherwise.
