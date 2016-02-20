@@ -2,7 +2,6 @@ package xyz.nickr.jitter.api.event;
 
 import org.json.JSONObject;
 
-import xyz.nickr.jitter.Jitter;
 import xyz.nickr.jitter.api.Room;
 
 /**
@@ -10,14 +9,7 @@ import xyz.nickr.jitter.api.Room;
  *
  * @author Nick Robson
  */
-public interface UserLeaveEvent {
-
-    /**
-     * Gets the providing {@link Jitter} object.
-     *
-     * @return The provider.
-     */
-    Jitter getJitter();
+public interface UserLeaveEvent extends JitterEvent {
 
     /**
      * Gets the underlying JSON object.

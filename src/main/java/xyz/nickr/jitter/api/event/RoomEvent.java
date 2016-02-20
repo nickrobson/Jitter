@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.json.JSONObject;
 
-import xyz.nickr.jitter.Jitter;
 import xyz.nickr.jitter.api.Room;
 import xyz.nickr.jitter.api.User;
 
@@ -16,14 +15,7 @@ import xyz.nickr.jitter.api.User;
  *
  * @author Nick Robson
  */
-public interface RoomEvent {
-
-    /**
-     * Gets the providing {@link Jitter} object.
-     *
-     * @return The provider.
-     */
-    Jitter getJitter();
+public interface RoomEvent extends JitterEvent {
 
     /**
      * Gets the underlying JSON object.
@@ -65,7 +57,7 @@ public interface RoomEvent {
      *
      * @return The HTML.
      */
-    String getHtml();
+    String getHTML();
 
     /**
      * Gets the room in which this event occurred.

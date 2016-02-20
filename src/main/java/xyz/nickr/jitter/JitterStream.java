@@ -11,9 +11,9 @@ import org.json.JSONObject;
 
 import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.Room;
-import xyz.nickr.jitter.api.event.RoomEvent;
 import xyz.nickr.jitter.impl.MessageImpl;
 import xyz.nickr.jitter.impl.UserImpl;
+import xyz.nickr.jitter.impl.event.MessageReceivedEventImpl;
 import xyz.nickr.jitter.impl.event.RoomEventImpl;
 
 /**
@@ -95,7 +95,7 @@ public class JitterStream {
                         try {
                             JSONObject object = new JSONObject(line);
                             Message event = new MessageImpl(jitter, room, new UserImpl(jitter, object.getJSONObject("fromUser")), object);
-                            jitter.onMessage(event);
+                            jitter.events().on(new MessageReceivedEventImpl(event));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -126,9 +126,7 @@ public class JitterStream {
                     String line = reader.readLine();
                     if (line != null && !(line = line.trim()).isEmpty()) {
                         try {
-                            JSONObject object = new JSONObject(line);
-                            RoomEvent event = new RoomEventImpl(jitter, room, object);
-                            jitter.onEvent(event);
+                            jitter.events().on(new RoomEventImpl(jitter, room, new JSONObject(line)));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

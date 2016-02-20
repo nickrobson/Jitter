@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.MessageHistory;
 import xyz.nickr.jitter.api.Room;
+import xyz.nickr.jitter.impl.event.MessageReceivedEventImpl;
 
 public class JitterPoller {
 
@@ -64,7 +65,7 @@ public class JitterPoller {
         public void processMessages() {
             for (Message message : history.getMessages()) {
                 if (!message.isRead())
-                    jitter.onMessage(message);
+                    jitter.events().on(new MessageReceivedEventImpl(message));
             }
             this.history.markRead();
         }

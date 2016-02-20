@@ -67,7 +67,7 @@ public class RoomEventImpl implements RoomEvent {
     }
 
     @Override
-    public String getHtml() {
+    public String getHTML() {
         return json.getString("html");
     }
 

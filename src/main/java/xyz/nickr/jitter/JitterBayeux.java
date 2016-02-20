@@ -26,9 +26,11 @@ import xyz.nickr.jitter.api.User;
 import xyz.nickr.jitter.impl.MessageImpl;
 import xyz.nickr.jitter.impl.RoomImpl;
 import xyz.nickr.jitter.impl.UserImpl;
+import xyz.nickr.jitter.impl.event.MessageReceivedEventImpl;
 import xyz.nickr.jitter.impl.event.RoomActivityEventImpl;
 import xyz.nickr.jitter.impl.event.RoomEventImpl;
 import xyz.nickr.jitter.impl.event.RoomMentionEventImpl;
+import xyz.nickr.jitter.impl.event.RoomReadMessagesEventImpl;
 import xyz.nickr.jitter.impl.event.RoomUnreadEventImpl;
 import xyz.nickr.jitter.impl.event.UserJoinEventImpl;
 import xyz.nickr.jitter.impl.event.UserLeaveEventImpl;
@@ -126,7 +128,7 @@ public class JitterBayeux {
             if (op.equals("create")) {
                 jitter.rooms.put(model.getString("id"), new RoomImpl(jitter, model));
             } else if (op.equals("patch")) {
-                Room room = jitter.rooms.get(model.getString("id"));
+                Room room = jitter.getRoom(model.getString("id"));
                 room.update(model);
             } else if (op.equals("remove")) {
                 // removed
@@ -136,7 +138,26 @@ public class JitterBayeux {
 
     public void subscribeUserRoomUnread(final User user, final Room room) {
         subscribe(resolve(USER_ROOM_UNREAD, mapOf(new String[][]{ {"userId", user.getID()}, {"roomId", room.getID()} })), (ch, msg) -> {
-            System.out.println("User room unread: " + new JSONObject(msg.getJSON()));
+            JSONObject json = new JSONObject(msg.getJSON());
+            JSONObject data = json.getJSONObject("data");
+            JSONObject items = json.optJSONObject("items");
+            JSONArray chat = items != null ? items.optJSONArray("chat") : null;
+            String[] ids;
+            if (chat != null) {
+                ids = new String[chat.length()];
+                for (int i = 0, j = ids.length; i < j; i++)
+                    ids[i] = chat.getString(i);
+            } else {
+                ids = new String[0];
+            }
+            String notif = data.getString("notification");
+            if (notif.equals("unread_items")) {
+                jitter.events().on(new RoomReadMessagesEventImpl(jitter, room, ids, true, data));
+            } else if (notif.equals("unread_items_removed")) {
+                jitter.events().on(new RoomReadMessagesEventImpl(jitter, room, ids, false, data));
+            } else {
+                System.out.println("User room unread: " + json);
+            }
         });
     }
 
@@ -148,13 +169,13 @@ public class JitterBayeux {
             String roomId = data.getString("troupeId");
             Room room = jitter.getRoom(roomId);
             if (notif.equals("activity")) {
-                jitter.onActivity(new RoomActivityEventImpl(jitter, room, json));
+                jitter.events().on(new RoomActivityEventImpl(jitter, room, json));
             } else if (notif.equals("user_notification")) {
-
+                System.out.println("User notification: " + json);
             } else if (notif.equals("troupe_unread")) {
-                jitter.onUnread(new RoomUnreadEventImpl(jitter, room, data.getInt("totalUnreadItems"), json));
+                jitter.events().on(new RoomUnreadEventImpl(jitter, room, data.getInt("totalUnreadItems"), json));
             } else if (notif.equals("troupe_mention")) {
-                jitter.onMention(new RoomMentionEventImpl(jitter, room, data.getInt("mentions"), json));
+                jitter.events().on(new RoomMentionEventImpl(jitter, room, data.getInt("mentions"), json));
             } else {
                 System.out.println("User information: " + json);
             }
@@ -163,7 +184,7 @@ public class JitterBayeux {
 
     public void subscribeRoom(final Room room) {
         subscribe(resolve(ROOM, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            jitter.onPresence(new UserPresenceEventImpl(jitter, room, new JSONObject(msg.getJSON())));
+            jitter.events().on(new UserPresenceEventImpl(jitter, room, new JSONObject(msg.getJSON())));
         });
     }
 
@@ -172,29 +193,34 @@ public class JitterBayeux {
             JSONObject json = new JSONObject(msg.getJSON());
             String op = json.getJSONObject("data").getString("operation");
             if (op.equals("create")) {
-                jitter.onJoin(new UserJoinEventImpl(jitter, room, new UserImpl(jitter, json.getJSONObject("data").getJSONObject("model")), json));
+                jitter.events().on(new UserJoinEventImpl(jitter, room, new UserImpl(jitter, json.getJSONObject("data").getJSONObject("model")), json));
             } else if (op.equals("remove")) {
-                jitter.onLeave(new UserLeaveEventImpl(jitter, room, json.getJSONObject("data").getJSONObject("model").getString("id"), json));
+                jitter.events().on(new UserLeaveEventImpl(jitter, room, json.getJSONObject("data").getJSONObject("model").getString("id"), json));
+            } else {
+                System.out.println("Room users: " + json);
             }
         });
     }
 
     public void subscribeRoomEvents(final Room room) {
         subscribe(resolve(ROOM_EVENTS, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            jitter.onEvent(new RoomEventImpl(jitter, room, new JSONObject(msg.getJSON()).getJSONObject("data").getJSONObject("model")));
+            jitter.events().on(new RoomEventImpl(jitter, room, new JSONObject(msg.getJSON()).getJSONObject("data").getJSONObject("model")));
         });
     }
 
     public void subscribeRoomMessages(final Room room) {
         subscribe(resolve(ROOM_MESSAGES, mapOf(new String[][]{ {"roomId", room.getID()} })), (ch, msg) -> {
-            JSONObject data = new JSONObject(msg.getJSON()).getJSONObject("data");
+            JSONObject json = new JSONObject(msg.getJSON());
+            JSONObject data = json.getJSONObject("data");
             JSONObject model = data.optJSONObject("model");
             String op = data.getString("operation");
             if (op.equals("create")) {
                 JSONObject fromUser = model.getJSONObject("fromUser");
-                jitter.onMessage(new MessageImpl(jitter, room, new UserImpl(jitter, fromUser), model));
+                jitter.events().on(new MessageReceivedEventImpl(new MessageImpl(jitter, room, new UserImpl(jitter, fromUser), model)));
             } else if (op.equals("patch")) {
-
+                System.out.println("Patch room users: " + json);
+            } else {
+                System.out.println("Room users: " + json);
             }
         });
     }

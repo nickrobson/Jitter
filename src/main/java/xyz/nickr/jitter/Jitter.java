@@ -16,25 +16,8 @@ import org.json.JSONObject;
 import com.github.rjeschke.txtmark.Processor;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
-import xyz.nickr.jitter.api.ListenerSet;
-import xyz.nickr.jitter.api.Message;
 import xyz.nickr.jitter.api.Room;
 import xyz.nickr.jitter.api.User;
-import xyz.nickr.jitter.api.event.RoomActivityEvent;
-import xyz.nickr.jitter.api.event.RoomEvent;
-import xyz.nickr.jitter.api.event.RoomMentionEvent;
-import xyz.nickr.jitter.api.event.RoomUnreadEvent;
-import xyz.nickr.jitter.api.event.UserJoinEvent;
-import xyz.nickr.jitter.api.event.UserLeaveEvent;
-import xyz.nickr.jitter.api.event.UserPresenceEvent;
-import xyz.nickr.jitter.api.listener.JitterMessageListener;
-import xyz.nickr.jitter.api.listener.JitterRoomActivityListener;
-import xyz.nickr.jitter.api.listener.JitterRoomEventListener;
-import xyz.nickr.jitter.api.listener.JitterRoomMentionListener;
-import xyz.nickr.jitter.api.listener.JitterRoomUnreadListener;
-import xyz.nickr.jitter.api.listener.JitterUserJoinListener;
-import xyz.nickr.jitter.api.listener.JitterUserLeaveListener;
-import xyz.nickr.jitter.api.listener.JitterUserPresenceListener;
 import xyz.nickr.jitter.impl.RoomImpl;
 import xyz.nickr.jitter.impl.UserImpl;
 
@@ -66,15 +49,7 @@ public final class Jitter {
     final JitterStream stream;
     final JitterBayeux bayeux;
     final JitterPoller poller;
-
-    final ListenerSet<JitterMessageListener> messageListeners;
-    final ListenerSet<JitterRoomEventListener> eventListeners;
-    final ListenerSet<JitterUserPresenceListener> presenceListeners;
-    final ListenerSet<JitterUserJoinListener> joinListeners;
-    final ListenerSet<JitterUserLeaveListener> leaveListeners;
-    final ListenerSet<JitterRoomActivityListener> activityListeners;
-    final ListenerSet<JitterRoomUnreadListener> unreadListeners;
-    final ListenerSet<JitterRoomMentionListener> mentionListeners;
+    final JitterEvents events;
 
     final Map<String, Room> rooms = new HashMap<>();
 
@@ -86,15 +61,7 @@ public final class Jitter {
         this.stream = new JitterStream(this);
         this.bayeux = new JitterBayeux(this);
         this.poller = new JitterPoller(this);
-
-        this.messageListeners = new ListenerSet<>();
-        this.eventListeners = new ListenerSet<>();
-        this.presenceListeners = new ListenerSet<>();
-        this.joinListeners = new ListenerSet<>();
-        this.leaveListeners = new ListenerSet<>();
-        this.activityListeners = new ListenerSet<>();
-        this.unreadListeners = new ListenerSet<>();
-        this.mentionListeners = new ListenerSet<>();
+        this.events = new JitterEvents(this);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -110,6 +77,15 @@ public final class Jitter {
                 ex.printStackTrace();
             }
         }));
+    }
+
+    /**
+     * Gets this instance's {@link JitterRequests} object.
+     *
+     * @return The requests object.
+     */
+    public JitterRequests requests() {
+        return requests;
     }
 
     /**
@@ -140,156 +116,12 @@ public final class Jitter {
     }
 
     /**
-     * Gets this instance's {@link JitterRequests} object.
+     * Gets this instance's {@link JitterEvents} object.
      *
-     * @return The requests object.
+     * @return The events object.
      */
-    public JitterRequests requests() {
-        return requests;
-    }
-
-    /**
-     * Calls a {@link Message} event for all registered {@link JitterMessageListener}s.
-     *
-     * @param msg The message.
-     */
-    public void onMessage(Message msg) {
-        messageListeners.forEach(l -> l.onMessage(msg));
-    }
-
-    /**
-     * Calls a {@link RoomEvent} for all registered {@link JitterRoomEventListener}s.
-     *
-     * @param event The event.
-     */
-    public void onEvent(RoomEvent event) {
-        eventListeners.forEach(l -> l.onEvent(event));
-    }
-
-    /**
-     * Calls a {@link UserPresenceEvent} for all registered {@link JitterUserPresenceListener}s.
-     *
-     * @param event The event.
-     */
-    public void onPresence(UserPresenceEvent event) {
-        presenceListeners.forEach(l -> l.onUserPresence(event));
-    }
-
-    /**
-     * Calls a {@link UserJoinEvent} for all registered {@link JitterUserJoinListener}s.
-     *
-     * @param event The event.
-     */
-    public void onJoin(UserJoinEvent event) {
-        joinListeners.forEach(l -> l.onJoin(event));
-    }
-
-    /**
-     * Calls a {@link UserLeaveEvent} for all registered {@link JitterUserLeaveListener}s.
-     *
-     * @param event The event.
-     */
-    public void onLeave(UserLeaveEvent event) {
-        leaveListeners.forEach(l -> l.onLeave(event));
-    }
-
-    /**
-     * Calls a {@link RoomActivityEvent} for all registered {@link JitterRoomActivityListener}s.
-     *
-     * @param event The event.
-     */
-    public void onActivity(RoomActivityEvent event) {
-        activityListeners.forEach(l -> l.onActivity(event));
-    }
-
-    /**
-     * Calls a {@link RoomUnreadEvent} for all registered {@link JitterRoomUnreadListener}s.
-     *
-     * @param event The event.
-     */
-    public void onUnread(RoomUnreadEvent event) {
-        unreadListeners.forEach(l -> l.onUnread(event));
-    }
-
-    /**
-     * Calls a {@link RoomMentionEvent} for all registered {@link JitterRoomMentionListener}s.
-     *
-     * @param event The event.
-     */
-    public void onMention(RoomMentionEvent event) {
-        mentionListeners.forEach(l -> l.onMention(event));
-    }
-
-    /**
-     * Registers a {@link JitterMessageListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onMessage(JitterMessageListener listener) {
-        messageListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterRoomEventListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onEvent(JitterRoomEventListener listener) {
-        eventListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterUserPresenceListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onPresence(JitterUserPresenceListener listener) {
-        presenceListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterUserJoinListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onJoin(JitterUserJoinListener listener) {
-        joinListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterUserLeaveListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onLeave(JitterUserLeaveListener listener) {
-        leaveListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterRoomActivityListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onActivity(JitterRoomActivityListener listener) {
-        activityListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterRoomUnreadListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onUnread(JitterRoomUnreadListener listener) {
-        unreadListeners.add(listener);
-    }
-
-    /**
-     * Registers a {@link JitterRoomMentionListener}.
-     *
-     * @param listener The listener.
-     */
-    public void onMention(JitterRoomMentionListener listener) {
-        mentionListeners.add(listener);
+    public JitterEvents events() {
+        return events;
     }
 
     /**
@@ -360,7 +192,7 @@ public final class Jitter {
      *
      * @return The HTML text.
      */
-    public String toHtml(String message) {
+    public String toHTML(String message) {
         try {
             Matcher matcher = URL_PATTERN.matcher(message);
             message = matcher.replaceAll("[$1]($1)");

@@ -117,7 +117,7 @@ public class MessageImpl implements Message {
         HttpRequestWithBody req = jitter.requests().put("/rooms/" + room.getID() + "/chatMessages/" + getID());
         json.put("editedAt", new Date());
         json.put("text", message);
-        json.put("html", jitter.toHtml(message));
+        json.put("html", jitter.toHTML(message));
         req.body(new JsonNode(json.toString()));
         try {
             req.asString(); // submit it
