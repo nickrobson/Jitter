@@ -10,7 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mashape.unirest.http.JsonNode;
-import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import xyz.nickr.jitter.Jitter;
@@ -20,21 +19,21 @@ import xyz.nickr.jitter.api.Room;
 
 public class MessageHistoryImpl implements MessageHistory {
 
-    private RoomImpl room;
+    private Room room;
     private List<Message> messages;
     private boolean loadBefore = true;
 
-    public MessageHistoryImpl(RoomImpl room) {
+    public MessageHistoryImpl(Room room) {
         this.room = room;
         loadMessages(50);
     }
 
-    public MessageHistoryImpl(RoomImpl room, List<Message> messages) {
+    public MessageHistoryImpl(Room room, List<Message> messages) {
         this.room = room;
         this.messages = messages;
     }
 
-    public MessageHistoryImpl(RoomImpl room, Message message, boolean loadBefore) {
+    public MessageHistoryImpl(Room room, Message message, boolean loadBefore) {
         this.room = room;
         this.messages = new LinkedList<>(Arrays.asList(message));
         this.loadBefore = loadBefore;
@@ -144,7 +143,8 @@ public class MessageHistoryImpl implements MessageHistory {
             return;
         json.put("chat", chat);
         try {
-            Unirest.post("/user/" + room.getJitter().getCurrentUser().getID() + "/rooms/" + room.getID() + "/unreadItems")
+            room.getJitter().requests()
+                .post("/user/" + room.getJitter().getCurrentUser().getID() + "/rooms/" + room.getID() + "/unreadItems")
                 .body(new JsonNode(json.toString()))
                 .asString();
         } catch (UnirestException e) {
