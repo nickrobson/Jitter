@@ -1,6 +1,27 @@
 # Jitter
 
-[![Join the chat at https://gitter.im/nickrobson/Jitter](https://badges.gitter.im/nickrobson/Jitter.svg)](https://gitter.im/nickrobson/Jitter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-A Java API for Gitter.im
+An easy-to-use Java API wrapper for [Gitter](https://gitter.im)
 
-[ ![Download](https://api.bintray.com/packages/nickrobson/maven/Jitter/images/download.svg) ](https://bintray.com/nickrobson/maven/Jitter/_latestVersion)
+## Features
+* REST API support (no updates)
+* Streaming support
+* Faye support (updates, preferred)
+
+## Maven
+
+```xml
+<repositories>
+    <repository>
+        <id>nickr</id>
+        <url>http://nickr.xyz/maven/content/public/</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>xyz.nickr</groupId>
+        <artifactId>Jitter</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+</dependencies>
+```
