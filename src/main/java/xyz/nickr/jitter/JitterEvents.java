@@ -1,7 +1,6 @@
 package xyz.nickr.jitter;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,7 +33,9 @@ public class JitterEvents {
             Class<?>[] params = method.getParameterTypes();
             if (params.length == 1 && JitterEvent.class.isAssignableFrom(params[0])) {
                 method.setAccessible(true);
-                methods.merge(params[0], new HashSet<>(Arrays.asList(new ListenerInfo(listener, method))), this::merge);
+                Set<ListenerInfo> set = methods.computeIfAbsent(params[0], k -> new HashSet<>());
+                set.add(new ListenerInfo(listener, method));
+                methods.put(params[0], set);
             }
         }
     }
@@ -50,12 +51,6 @@ public class JitterEvents {
         for (Entry<Class<?>, Set<ListenerInfo>> entry : methods.entrySet())
             if (entry.getValue() != null && entry.getKey().isAssignableFrom(event.getClass()))
                 entry.getValue().forEach(i -> i.run(event));
-    }
-
-    <T> Set<T> merge(Set<T> a, Set<T> b) {
-        Set<T> set = new HashSet<>(a);
-        set.addAll(b);
-        return set;
     }
 
     static class ListenerInfo {
